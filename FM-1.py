@@ -9,25 +9,18 @@ import matplotlib
 
 matplotlib.use('pdf')
 import matplotlib.pyplot as plt
-import scipy.io as sio
-import os
+
 import tensorflow as tf
 from keras.layers import Dense, Dropout, LSTM, Embedding, Activation, Lambda, Bidirectional, Flatten, Conv1D, \
     GlobalMaxPooling1D
-from keras.layers import GRU, SimpleRNN, Dense
-from keras.engine import Input, Model, InputSpec
-from keras.preprocessing.sequence import pad_sequences
-from keras.utils import plot_model
-from keras.utils.data_utils import get_file
-from keras.models import Sequential
-from keras.optimizers import Adam
-from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.layers import Dense
 
-from keras import backend as K
-from keras.preprocessing import sequence
-from keras.models import model_from_json
-checkpoint_dir ='FM-1-Checkpoints'
-os.path.exists(checkpoint_dir)
+from keras.preprocessing.sequence import pad_sequences
+
+from keras.models import Sequential
+
+
+
 # Input file name
 input_file = "train.csv"
 
@@ -102,22 +95,21 @@ def create_plots(history):
 
 X_train, y_train, X_test, y_test = load_data()
 model = create_lstm(len(X_train[0]))
-filepath= checkpoint_dir + "/weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
-checkpoint = ModelCheckpoint(filepath, monitor='val_accuracy', verbose=0, save_best_only=True, mode='max')
-callbacks_list = [checkpoint]
+for i in range(20):
+    print("EPOCH ROUND -" + str(i+1))
+    history = model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs= 5 , validation_split=.001, verbose=1)
+    name = "FM-1_model-" + str(i+1) + ".h5"
+    print("Saving the " + str(i+1) + " Model: ")
+    model.save(name)
+    print("Validation Output after EPOCH ROUND - " + str(i+1))
+    test_loss, test_acc = model.evaluate(X_test, y_test)
+    print("Validation accuracy: " + str(test_acc))
+    print("Validation loss: " + str(test_loss))
+    print("END of round " + str(i+1))
 
-print("Starting the training")
-history = model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=.001, verbose=1)
-test_loss, test_acc = model.evaluate(X_test, y_test)
-print("Validation accuracy: " + str(test_acc))
-print("Validation loss: " + str(test_loss))
-model_json = model.to_json()
-with open("model.json", "w") as json_file:
-    json_file.write(model_json)
-
-model.save_weights("model.h5")
-print("Saved model to disk")
+print("Creating Plots")
 create_plots(history)
+print("Finished Creating Plots")
 
 
 
